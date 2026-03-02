@@ -1,0 +1,32 @@
+{
+  "name": "controllore-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Controllore SRv6 PCE Web UI",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext ts,tsx"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.21",
+    "@types/cytoscape": "^3.21.9",
+    "cytoscape": "^3.33.1",
+    "cytoscape-cola": "^2.5.1",
+    "lucide-react": "^0.575.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.13.1",
+    "recharts": "^3.7.0",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1"
+  }
+}

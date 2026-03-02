@@ -1,0 +1,146 @@
+version: '3.9'
+
+services:
+  # ── Controllore PCE Daemon ────────────────────────────────────────────────
+  pced:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: controllore-pced:latest
+    container_name: controllore-pced
+    restart: unless-stopped
+    ports:
+      - "8080:8080"    # REST API + WebSocket
+      - "4189:4189"    # PCEP
+    volumes:
+      - ./controllore.yaml:/etc/controllore/controllore.yaml:ro
+    environment:
+      - CONTROLLORE_LOG_LEVEL=info
+      - CONTROLLORE_LOG_FORMAT=console
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - controllore
+
+  # ── PostgreSQL TED persistence ────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: controllore-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: controllore
+      POSTGRES_USER: controllore
+      POSTGRES_PASSWORD: controllore
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U controllore -d controllore"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - controllore
+
+  # ── Redis LSP state cache ─────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: controllore-redis
+    restart: unless-stopped
+    command: redis-server --save "" --appendonly no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - controllore
+
+  # ── FRRouting reference PCC + BGP-LS source ──────────────────────────────
+  frr:
+    image: frrouting/frr:latest
+    container_name: controllore-frr
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+    volumes:
+      - ./frr/frr.conf:/etc/frr/frr.conf:ro
+      - ./frr/daemons:/etc/frr/daemons:ro
+      - ./frr/vtysh.conf:/etc/frr/vtysh.conf:ro
+    networks:
+      controllore:
+        ipv4_address: 172.20.0.10
+        ipv6_address: fd00::10
+
+  # ── Prometheus metrics ────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: controllore-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - controllore
+
+  # ── Grafana dashboards ────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: controllore-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=controllore
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - controllore
+
+  # ── Web UI (dev server; replace with nginx for production) ───────────────
+  ui:
+    image: node:20-alpine
+    container_name: controllore-ui
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    volumes:
+      - ../ui:/app
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://pced:8080
+    depends_on:
+      - pced
+    networks:
+      - controllore
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  controllore:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+        - subnet: fd00::/64

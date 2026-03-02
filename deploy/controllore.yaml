@@ -1,0 +1,41 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+database:
+  host: "postgres"
+  port: 5432
+  name: "controllore"
+  user: "controllore"
+  password: "controllore"
+  ssl_mode: "disable"
+
+redis:
+  addr: "redis:6379"
+  db: 0
+
+bgpls:
+  local_as: 65000
+  local_addr: "0.0.0.0"
+  router_id: "192.0.2.254"
+  peers:
+    - addr: "172.20.0.10"
+      as: 65000
+      description: "frr-pcc"
+      hold_time: "90s"
+
+pcep:
+  listen_addr: "0.0.0.0"
+  port: 4189
+  keepalive: 30
+  dead_timer: 120
+  tls: false
+
+auth:
+  enabled: false
+  jwt_secret: "change-me-in-production"
+  token_ttl: "24h"
+
+log:
+  level: "info"
+  format: "console"
