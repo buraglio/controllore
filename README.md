@@ -309,9 +309,9 @@ A reference FRR configuration is provided in [`deploy/frr/frr.conf`](deploy/frr/
 | React Web UI | ✅ Complete |
 | Docker Compose stack | ✅ Complete |
 | FRR reference config | ✅ Complete |
-| BGP-LS NLRI parser | 🔧 In progress |
-| PCEP message handlers (PCRpt/PCUpd) | 🔧 In progress |
-| PostgreSQL persistence | 🔧 In progress |
+| BGP-LS NLRI parser | ✅ Complete |
+| PCEP message handlers (PCRpt/PCUpd) | ✅ Complete |
+| PostgreSQL persistence | ✅ Complete |
 | PCEP-TLS | 🔧 Configurable, wiring pending |
 | JWT authentication | 🔧 Configurable, middleware pending |
 | SR-MPLS label stack | 📋 Planned |

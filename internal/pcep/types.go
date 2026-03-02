@@ -100,9 +100,9 @@ const (
 	TLVRSVPErrorSpec         TLVType = 21 // RFC 8231
 	TLVLSPDBVersion          TLVType = 23 // RFC 8231
 	TLVSpeakerEntityID       TLVType = 24 // RFC 8232
-	TLVPathSetupTyped        TLVType = 28 // RFC 8408
 	TLVSRv6SIDStructure      TLVType = 35 // draft-ietf-pce-segment-routing-ipv6
-	TLVBSID                  TLVType = 58 // Binding SID
+	TLVBSID                  TLVType = 58 // Binding SID (SR-MPLS label)
+	TLVBSIDv6                TLVType = 59 // Binding SID (SRv6 IPv6 address)
 )
 
 // ============================================================

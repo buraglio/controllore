@@ -89,6 +89,11 @@ type TED struct {
 	links map[string]*Link // keyed by LocalNodeID+RemoteNodeID+LocalIP
 	// Reverse index: links by node
 	nodeLinks map[string][]*Link
+
+	// Optional persistence callbacks — called while NOT holding the lock
+	onUpsertNode func(*Node)
+	onUpsertLink func(*Link)
+	onDeleteNode func(string)
 }
 
 // New creates an empty TED.
@@ -100,6 +105,15 @@ func New() *TED {
 	}
 }
 
+// SetOnUpsertNode registers a callback invoked after every node upsert.
+func (t *TED) SetOnUpsertNode(fn func(*Node)) { t.onUpsertNode = fn }
+
+// SetOnUpsertLink registers a callback invoked after every link upsert.
+func (t *TED) SetOnUpsertLink(fn func(*Link)) { t.onUpsertLink = fn }
+
+// SetOnDeleteNode registers a callback invoked after every node deletion.
+func (t *TED) SetOnDeleteNode(fn func(string)) { t.onDeleteNode = fn }
+
 // linkKey builds a stable map key for a link given its endpoints.
 func linkKey(localNodeID, remoteNodeID string, localIP netip.Addr) string {
 	return localNodeID + "|" + remoteNodeID + "|" + localIP.String()
@@ -108,19 +122,27 @@ func linkKey(localNodeID, remoteNodeID string, localIP netip.Addr) string {
 // UpsertNode inserts or updates a node in the TED.
 func (t *TED) UpsertNode(n *Node) {
 	t.mu.Lock()
-	defer t.mu.Unlock()
 	if n.ID == uuid.Nil {
 		n.ID = uuid.New()
 	}
 	n.LastSeen = time.Now()
 	t.nodes[n.RouterID] = n
+	cb := t.onUpsertNode
+	t.mu.Unlock()
+	if cb != nil {
+		cb(n)
+	}
 }
 
 // DeleteNode removes a node from the TED by RouterID.
 func (t *TED) DeleteNode(routerID string) {
 	t.mu.Lock()
-	defer t.mu.Unlock()
 	delete(t.nodes, routerID)
+	cb := t.onDeleteNode
+	t.mu.Unlock()
+	if cb != nil {
+		cb(routerID)
+	}
 }
 
 // GetNode returns a node by RouterID (nil if not found).
@@ -144,7 +166,6 @@ func (t *TED) AllNodes() []*Node {
 // UpsertLink inserts or updates a link in the TED.
 func (t *TED) UpsertLink(l *Link) {
 	t.mu.Lock()
-	defer t.mu.Unlock()
 	if l.ID == uuid.Nil {
 		l.ID = uuid.New()
 	}
@@ -163,6 +184,11 @@ func (t *TED) UpsertLink(l *Link) {
 	}
 	if !found {
 		t.nodeLinks[l.LocalNodeID] = append(t.nodeLinks[l.LocalNodeID], l)
+	}
+	cb := t.onUpsertLink
+	t.mu.Unlock()
+	if cb != nil {
+		cb(l)
 	}
 }
 
