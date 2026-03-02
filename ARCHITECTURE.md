@@ -4,6 +4,8 @@
 
 > An open-source, API-first stateful Path Computation Element controller focused on SRv6 (full-SID and uSID) with SR-MPLS support, designed for large service provider WANs.
 
+**Related documents:** [README.md](README.md) · [INSTALL.md](INSTALL.md)
+
 ---
 
 ## Relevant RFCs & Drafts
