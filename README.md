@@ -99,6 +99,40 @@ controllore/
 
 ---
 
+## Screenshots
+
+### Dashboard
+Real-time PCE health overview — TED stats, active LSPs, PCEP session status.
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Topology Viewer
+Interactive Cytoscape.js network graph with TE metric overlays, flex-algo filtering, and per-node SRv6 locator details.
+
+![Topology](docs/screenshots/topology.png)
+
+### LSP Management
+Full LSP lifecycle table with type/status/metric filtering, side-panel segment list, and uSID SID pills.
+
+![LSPs](docs/screenshots/lsps.png)
+
+### Path Studio
+CSPF computation form with constraint inputs (metric, flex-algo, uSID, SRLG avoidance) and computed segment list visualization.
+
+![Path Studio](docs/screenshots/path_studio.png)
+
+### PCEP Sessions
+Live session table with per-PCC SRv6/uSID capabilities, message counters, and protocol reference cards.
+
+![Sessions](docs/screenshots/sessions.png)
+
+### Live Events
+Real-time WebSocket event stream with color-coded event types, filter, and pause/resume.
+
+![Events](docs/screenshots/events.png)
+
+---
+
 ## Quick Start
 
 ### Prerequisites
